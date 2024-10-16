@@ -2,6 +2,7 @@ module MultiSchema
   module Behaviors
     @@disable_message = false
     @@default_search_path = '"$user",public'
+    @@service_schema = 'public'
 
     def disable_message=(val)
       @@disable_message = val
@@ -17,6 +18,10 @@ module MultiSchema
 
     def default_search_path
       @@default_search_path
+    end
+
+    def service_schema
+      @@service_schema
     end
 
     def with_in_schemas(options = nil)
@@ -53,6 +58,7 @@ module MultiSchema
     def reset_schema_path
       puts '--- Restore Schema to "$user", public' unless disable_message
       ::ActiveRecord::Base.connection.schema_search_path = '"$user", public'
+      @@service_schema = 'public'
       clear_cache
       nil
     end
@@ -63,6 +69,7 @@ module MultiSchema
 
     def set_schema_path(schema)
       puts "--- Select Schema: #{schema} " unless disable_message
+      @@service_schema = schema.split(/\s*,\s*/).reject { |x| x == '"$user"' }.first
       ActiveRecord::Base.connection.schema_search_path = schema
       clear_cache
       nil
